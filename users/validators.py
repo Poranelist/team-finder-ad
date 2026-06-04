@@ -1,7 +1,7 @@
 import re
 
+from core.validators import validate_github_url
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 
 
 def validate_phone_number(value):
@@ -19,19 +19,3 @@ def validate_phone_number(value):
         raise ValidationError("Телефон должен содержать 10 цифр после кода")
 
     return normalized
-
-
-def validate_github_url(value):
-    if not value:
-        return value
-
-    validator = URLValidator()
-    try:
-        validator(value)
-    except ValidationError:
-        raise ValidationError("Введите корректный URL")
-
-    if "github.com" not in value:
-        raise ValidationError("Ссылка должна вести на GitHub")
-
-    return value

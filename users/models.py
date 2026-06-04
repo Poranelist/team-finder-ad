@@ -9,14 +9,14 @@ from core.constants import (
     MAX_PHONE_LEN,
     MAX_SURNAME_LEN,
 )
-from users.managers import CustomUserManager
+from users.managers import UserManager
 from users.utils import create_avatar
 
 
 class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(
-        unique=True, db_index=True, verbose_name="Электронная почта"
+        unique=True, verbose_name="Электронная почта"
     )
     name = models.CharField(max_length=MAX_NAME_LEN, verbose_name="Имя")
     surname = models.CharField(
@@ -40,21 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="Избранные проекты",
     )
 
-    groups = models.ManyToManyField(
-        "auth.Group",
-        blank=True,
-        related_name="custom_user_set",
-        related_query_name="custom_user",
-    )
-
-    user_permissions = models.ManyToManyField(
-        "auth.Permission",
-        blank=True,
-        related_name="custom_user_set",
-        related_query_name="custom_user",
-    )
-
-    objects = CustomUserManager()
+    objects = UserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["name", "surname", "phone"]
@@ -62,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
-        ordering = ["-id"]
+        ordering = ["-email"]  
 
     def __str__(self):
         return f"{self.name} {self.surname}"
@@ -72,5 +58,5 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.avatar or self.avatar.name == DEFAULT_AVATAR:
-            self.avatar = create_avatar(self.name, self.surname, self.email)
+            self.avatar = create_avatar(self.name, self.email)
         super().save(*args, **kwargs)

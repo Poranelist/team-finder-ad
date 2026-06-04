@@ -7,7 +7,7 @@ from users.models import User
 
 
 @admin.register(User)
-class CustomUserAdmin(BaseUserAdmin):
+class UserAdmin(BaseUserAdmin):
 
     list_display = (
         "id",

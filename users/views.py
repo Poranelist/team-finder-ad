@@ -1,14 +1,12 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import PasswordChangeView
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
-from django.views import View
-from django.views.generic import DetailView, ListView, UpdateView
+from django.shortcuts import redirect
+from django.urls import reverse
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from core.constants import USERS_PER_PAGE
-from users.forms import ChangePasswordForm, LoginForm, ProfileEditForm, RegisterForm
+from users.forms import LoginForm, ProfileEditForm, RegisterForm
 from users.models import User
 
 
@@ -49,52 +47,39 @@ class UsersListView(ListView):
         return users
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["active_filter"] = self.request.GET.get("filter")
-        return context
+        return super().get_context_data(**kwargs, active_filter=self.request.GET.get("filter"))
 
 
-class RegisterView(View):
+class RegisterView(CreateView):
+    model = User
+    form_class = RegisterForm
+    template_name = "users/register.html"
 
-    def get(self, request):
-        form = RegisterForm()
-        return render(request, "users/register.html", {"form": form})
-
-    def post(self, request):
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("projects:project_list")
-        return render(request, "users/register.html", {"form": form})
-
-
-class LoginView(View):
-
-    def get(self, request):
-        form = LoginForm()
-        return render(request, "users/login.html", {"form": form})
-
-    def post(self, request):
-        form = LoginForm(request, data=request.POST)
-        if form.is_valid():
-            login(request, form.get_user())
-            return redirect("projects:project_list")
-        return render(request, "users/login.html", {"form": form})
-
-
-class LogoutView(View):
-
-    def get(self, request):
-        logout(request)
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
         return redirect("projects:project_list")
+
+
+class LoginView(CreateView):
+    form_class = LoginForm
+    template_name = "users/login.html"
+
+    def form_valid(self, form):
+        login(self.request, form.get_user())
+        return redirect("projects:project_list")
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("projects:project_list")
 
 
 class UserDetailView(DetailView):
     model = User
     template_name = "users/user-details.html"
     context_object_name = "user_obj"
-    pk_url_kwarg = "pk"
+    pk_url_kwarg = "user_id"
 
     def get_queryset(self):
         return User.objects.filter(is_active=True)
@@ -104,10 +89,10 @@ class UserEditView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = ProfileEditForm
     template_name = "users/edit_profile.html"
-    pk_url_kwarg = "pk"
+    pk_url_kwarg = "user_id"
 
     def get_success_url(self):
-        return reverse_lazy("users:detail", kwargs={"pk": self.object.pk})
+        return reverse("users:detail", kwargs={"user_id": self.object.pk})
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -115,24 +100,7 @@ class UserEditView(LoginRequiredMixin, UpdateView):
 
 class UserChangePasswordView(LoginRequiredMixin, PasswordChangeView):
     template_name = "users/change_password.html"
-    form_class = ChangePasswordForm
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs["user"] = self.request.user
-        return kwargs
+    success_url = reverse("users:detail", kwargs={"user_id": None})
 
     def get_success_url(self):
-        return reverse_lazy("users:detail", kwargs={"pk": self.request.user.pk})
-
-
-def register_user(request):
-    return RegisterView.as_view()(request)
-
-
-def login_user(request):
-    return LoginView.as_view()(request)
-
-
-def logout_user(request):
-    return LogoutView.as_view()(request)
+        return reverse("users:detail", kwargs={"user_id": self.request.user.pk})

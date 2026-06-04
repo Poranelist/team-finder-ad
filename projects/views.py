@@ -1,11 +1,12 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.core import exceptions
 
-from core.constants import PROJECTS_PER_PAGE
+from core.constants import PROJECTS_PER_PAGE, PROJECT_STATUS_OPEN, PROJECT_STATUS_CLOSED
 from projects.forms import ProjectForm
 from projects.models import Project
 
@@ -17,7 +18,7 @@ class ProjectListView(ListView):
     paginate_by = PROJECTS_PER_PAGE
 
     def get_queryset(self):
-        return Project.objects.filter(status="open").order_by("-created_at")
+        return Project.objects.filter(status=PROJECT_STATUS_OPEN)
 
 
 class FavoriteProjectsView(LoginRequiredMixin, ListView):
@@ -27,14 +28,14 @@ class FavoriteProjectsView(LoginRequiredMixin, ListView):
     paginate_by = PROJECTS_PER_PAGE
 
     def get_queryset(self):
-        return self.request.user.favorites.all().order_by("-created_at")
+        return self.request.user.favorites.all()
 
 
 class ProjectDetailsView(DetailView):
     model = Project
     template_name = "projects/project-details.html"
     context_object_name = "project"
-    pk_url_kwarg = "pk"
+    pk_url_kwarg = "project_id"
 
 
 class CreateProjectView(LoginRequiredMixin, CreateView):
@@ -43,67 +44,66 @@ class CreateProjectView(LoginRequiredMixin, CreateView):
     template_name = "projects/create-project.html"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["is_edit"] = False
-        return context
+        return super().get_context_data(**kwargs, is_edit=False)
 
     def form_valid(self, form):
         project = form.save(commit=False)
         project.owner = self.request.user
         project.save()
         project.participants.add(self.request.user)
-        return redirect("projects:detail", pk=project.pk)
+        return redirect("projects:detail", project_id=project.pk)
 
     def get_success_url(self):
-        return reverse_lazy("projects:detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("projects:detail", kwargs={"project_id": self.object.pk})
 
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     model = Project
     form_class = ProjectForm
     template_name = "projects/create-project.html"
-    pk_url_kwarg = "pk"
+    pk_url_kwarg = "project_id"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["is_edit"] = True
-        context["project"] = self.get_object()
-        return context
+        return super().get_context_data(**kwargs, is_edit=True, project=self.get_object())
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
         if project.owner != request.user:
-            return redirect("projects:detail", pk=project.pk)
+            return redirect("projects:detail", project_id=project.pk)
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse_lazy("projects:detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("projects:detail", kwargs={"project_id": self.object.pk})
 
 
 class CompleteProjectView(LoginRequiredMixin, View):
 
-    def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
 
         if project.owner != request.user:
-            return JsonResponse({"status": "error", "message": "Forbidden"}, status=403)
+            return JsonResponse(
+                {"status": "error", "message": "Forbidden"},
+                status=exceptions.PermissionDenied.status_code
+            )
 
-        if project.status == "open":
-            project.status = "closed"
+        if project.status == PROJECT_STATUS_OPEN:
+            project.status = PROJECT_STATUS_CLOSED
             project.save()
-            return JsonResponse({"status": "ok", "project_status": "closed"})
+            return JsonResponse({"status": "ok", "project_status": PROJECT_STATUS_CLOSED})
 
         return JsonResponse(
-            {"status": "error", "message": "Project already closed"}, status=400
+            {"status": "error", "message": "Project already closed"},
+            status=exceptions.BadRequest.status_code
         )
 
 
 class ToggleFavoriteView(LoginRequiredMixin, View):
 
-    def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
 
-        if project in request.user.favorites.all():
+        if request.user.favorites.filter(pk=project.pk).exists():
             request.user.favorites.remove(project)
             favorited = False
         else:
@@ -115,10 +115,10 @@ class ToggleFavoriteView(LoginRequiredMixin, View):
 
 class ToggleParticipateView(LoginRequiredMixin, View):
 
-    def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+    def post(self, request, project_id):
+        project = get_object_or_404(Project, pk=project_id)
 
-        if request.user in project.participants.all():
+        if project.participants.filter(pk=request.user.pk).exists():
             project.participants.remove(request.user)
             participated = False
         else:

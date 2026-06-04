@@ -35,7 +35,7 @@ TeamFinder — это онлайн-платформа для поиска соа
 ### Клонирование репозитория
 
 ```bash
-git clone <url-репозитория>
+git clone <https://github.com/Poranelist/team-finder-ad.git>
 cd team-finder-ad
 ```
 
@@ -82,11 +82,21 @@ cp .env_example .env
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-### Запуск базы данных (PostgreSQL)
+### Docker
+
+Запустите контейнеры:
 
 ```bash
-docker-compose up -d
+docker compose up --build
 ```
+
+Остановить контейнеры:
+
+```bash
+docker compose down
+```
+
+порт `5432`.
 
 ### Применение миграций
 
@@ -118,8 +128,8 @@ python manage.py runserver
 
 ##  Автор
 
-- Свиридов Владимир Алексеевич – разработчик бэкенда
-- GitHub: https://github.com/Poranelist
-- Email: vovasvirid07@gmail.com
+- Свиридов Владимир – разработчик бэкенда
+- GitHub: [https://github.com/Poranelist](https://github.com/Poranelist)
+- Email: [vovasvirid07@gmail.com](mailto:vovasvirid07@gmail.com)
 
 ---
