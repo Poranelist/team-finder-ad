@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core import exceptions
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from django.core import exceptions
 
-from core.constants import PROJECTS_PER_PAGE, PROJECT_STATUS_OPEN, PROJECT_STATUS_CLOSED
+from core.constants import (PROJECT_STATUS_CLOSED, PROJECT_STATUS_OPEN,
+                            PROJECTS_PER_PAGE)
 from projects.forms import ProjectForm
 from projects.models import Project
 
@@ -64,7 +65,9 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
     pk_url_kwarg = "project_id"
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs, is_edit=True, project=self.get_object())
+        return super().get_context_data(
+            **kwargs, is_edit=True, project=self.get_object()
+        )
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
@@ -84,17 +87,19 @@ class CompleteProjectView(LoginRequiredMixin, View):
         if project.owner != request.user:
             return JsonResponse(
                 {"status": "error", "message": "Forbidden"},
-                status=exceptions.PermissionDenied.status_code
+                status=exceptions.PermissionDenied.status_code,
             )
 
         if project.status == PROJECT_STATUS_OPEN:
             project.status = PROJECT_STATUS_CLOSED
             project.save()
-            return JsonResponse({"status": "ok", "project_status": PROJECT_STATUS_CLOSED})
+            return JsonResponse(
+                {"status": "ok", "project_status": PROJECT_STATUS_CLOSED}
+            )
 
         return JsonResponse(
             {"status": "error", "message": "Project already closed"},
-            status=exceptions.BadRequest.status_code
+            status=exceptions.BadRequest.status_code,
         )
 
 

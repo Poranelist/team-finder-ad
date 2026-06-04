@@ -1,23 +1,15 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 
-from core.constants import (
-    AVATAR_UPLOAD_PATH,
-    DEFAULT_AVATAR,
-    MAX_ABOUT_LEN,
-    MAX_NAME_LEN,
-    MAX_PHONE_LEN,
-    MAX_SURNAME_LEN,
-)
+from core.constants import (AVATAR_UPLOAD_PATH, DEFAULT_AVATAR, MAX_ABOUT_LEN,
+                            MAX_NAME_LEN, MAX_PHONE_LEN, MAX_SURNAME_LEN)
 from users.managers import UserManager
 from users.utils import create_avatar
 
 
 class User(AbstractBaseUser, PermissionsMixin):
 
-    email = models.EmailField(
-        unique=True, verbose_name="Электронная почта"
-    )
+    email = models.EmailField(unique=True, verbose_name="Электронная почта")
     name = models.CharField(max_length=MAX_NAME_LEN, verbose_name="Имя")
     surname = models.CharField(
         max_length=MAX_SURNAME_LEN, verbose_name="Фамилия")
@@ -48,7 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
-        ordering = ["-email"]  
+        ordering = ["-email"]
 
     def __str__(self):
         return f"{self.name} {self.surname}"

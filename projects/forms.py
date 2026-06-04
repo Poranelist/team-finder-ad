@@ -8,7 +8,7 @@ class ProjectForm(forms.ModelForm):
     github_url = forms.URLField(
         required=False,
         validators=[validate_github_url],
-        widget=forms.URLInput(attrs={"placeholder": "https://github.com/..."})
+        widget=forms.URLInput(attrs={"placeholder": "https://github.com/..."}),
     )
 
     class Meta:
@@ -16,6 +16,8 @@ class ProjectForm(forms.ModelForm):
         fields = ["name", "description", "github_url", "status"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": "Название проекта"}),
-            "description": forms.Textarea(attrs={"rows": 5, "placeholder": "Описание проекта"}),
+            "description": forms.Textarea(
+                attrs={"rows": 5, "placeholder": "Описание проекта"}
+            ),
             "status": forms.Select(),
         }

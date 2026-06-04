@@ -1,6 +1,7 @@
+from urllib.parse import urlparse
+
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from urllib.parse import urlparse
 
 
 def validate_github_url(value):
@@ -16,10 +17,10 @@ def validate_github_url(value):
     parsed_url = urlparse(value)
     domain = parsed_url.netloc.lower()
 
-    if domain.startswith('www.'):
+    if domain.startswith("www."):
         domain = domain[4:]
 
-    if domain != 'github.com':
+    if domain != "github.com":
         raise ValidationError("Ссылка должна вести на GitHub")
 
     return value

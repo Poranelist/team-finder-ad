@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -6,11 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 AUTH_USER_MODEL = "users.User"
 
-SECRET_KEY = config("DJANGO_SECRET_KEY", default="django-insecure-fallback-key-for-dev")
+SECRET_KEY = config("DJANGO_SECRET_KEY",
+                    default="django-insecure-fallback-key-for-dev")
 
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = config("DJANGO_ALLOWED_HOSTS",
+                       default="localhost,127.0.0.1").split(",")
 
 
 INSTALLED_APPS = [
@@ -118,4 +121,3 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-

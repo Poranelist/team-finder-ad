@@ -47,7 +47,9 @@ class UsersListView(ListView):
         return users
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs, active_filter=self.request.GET.get("filter"))
+        return super().get_context_data(
+            **kwargs, active_filter=self.request.GET.get("filter")
+        )
 
 
 class RegisterView(CreateView):

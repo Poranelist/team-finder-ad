@@ -1,12 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from core.constants import (
-    MAX_PROJECT_NAME_LEN,
-    PROJECT_STATUS_CHOICES,
-    PROJECT_STATUS_CLOSED,
-    PROJECT_STATUS_OPEN,
-)
+from core.constants import (MAX_PROJECT_NAME_LEN, PROJECT_STATUS_CHOICES,
+                            PROJECT_STATUS_CLOSED, PROJECT_STATUS_OPEN)
 
 User = get_user_model()
 
@@ -14,8 +10,7 @@ User = get_user_model()
 class Project(models.Model):
 
     name = models.CharField(
-        max_length=MAX_PROJECT_NAME_LEN, verbose_name="Название"
-    )
+        max_length=MAX_PROJECT_NAME_LEN, verbose_name="Название")
 
     description = models.TextField(blank=True, verbose_name="Описание")
 
@@ -27,8 +22,7 @@ class Project(models.Model):
     )
 
     created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Дата создания"
-    )
+        auto_now_add=True, verbose_name="Дата создания")
 
     github_url = models.URLField(blank=True, verbose_name="Ссылка на GitHub")
 

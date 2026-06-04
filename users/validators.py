@@ -1,7 +1,8 @@
 import re
 
-from core.validators import validate_github_url
 from django.core.exceptions import ValidationError
+
+from core.validators import validate_github_url
 
 
 def validate_phone_number(value):

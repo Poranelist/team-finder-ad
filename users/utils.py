@@ -5,13 +5,8 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
 
-from core.constants import (
-    AVATAR_COLOR_PALETTE,
-    AVATAR_FONT_SIZE,
-    AVATAR_SIZE,
-    AVATAR_TEXT_COLOR,
-    FONT_PATHS,
-)
+from core.constants import (AVATAR_COLOR_PALETTE, AVATAR_FONT_SIZE,
+                            AVATAR_SIZE, AVATAR_TEXT_COLOR, FONT_PATHS)
 
 
 def create_avatar(name, surname, email):
@@ -45,7 +40,8 @@ def create_avatar(name, surname, email):
     position_x = (AVATAR_SIZE - text_width) / 2 - bbox[0]
     position_y = (AVATAR_SIZE - text_height) / 2 - bbox[1]
 
-    drawer.text((position_x, position_y), initials, fill=AVATAR_TEXT_COLOR, font=font)
+    drawer.text((position_x, position_y), initials,
+                fill=AVATAR_TEXT_COLOR, font=font)
 
     buffer = BytesIO()
     image.save(buffer, format="PNG")
