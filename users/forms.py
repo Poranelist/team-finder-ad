@@ -3,8 +3,9 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.password_validation import validate_password
 
+from core.validators import validate_github_url
 from users.models import User
-from users.validators import validate_github_url, validate_phone_number
+from users.validators import validate_phone_number
 
 
 class RegisterForm(forms.ModelForm):

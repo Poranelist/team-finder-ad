@@ -57,19 +57,10 @@ class RegisterView(CreateView):
     form_class = RegisterForm
     template_name = "users/register.html"
 
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        return redirect("projects:project_list")
-
 
 class LoginView(CreateView):
     form_class = LoginForm
     template_name = "users/login.html"
-
-    def form_valid(self, form):
-        login(self.request, form.get_user())
-        return redirect("projects:project_list")
 
 
 def logout_view(request):
@@ -102,7 +93,6 @@ class UserEditView(LoginRequiredMixin, UpdateView):
 
 class UserChangePasswordView(LoginRequiredMixin, PasswordChangeView):
     template_name = "users/change_password.html"
-    success_url = reverse("users:detail", kwargs={"user_id": None})
 
     def get_success_url(self):
         return reverse("users:detail", kwargs={"user_id": self.request.user.pk})

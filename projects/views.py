@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import exceptions
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.views import View
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
@@ -48,14 +48,12 @@ class CreateProjectView(LoginRequiredMixin, CreateView):
         return super().get_context_data(**kwargs, is_edit=False)
 
     def form_valid(self, form):
-        project = form.save(commit=False)
-        project.owner = self.request.user
-        project.save()
-        project.participants.add(self.request.user)
-        return redirect("projects:detail", project_id=project.pk)
+        response = super().form_valid(form)
+        self.object.participants.add(self.request.user)
+        return response
 
     def get_success_url(self):
-        return reverse_lazy("projects:detail", kwargs={"project_id": self.object.pk})
+        return reverse("projects:detail", kwargs={"project_id": self.object.pk})
 
 
 class ProjectUpdateView(LoginRequiredMixin, UpdateView):
@@ -76,58 +74,49 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse_lazy("projects:detail", kwargs={"project_id": self.object.pk})
+        return reverse("projects:detail", kwargs={"project_id": self.object.pk})
 
 
 class CompleteProjectView(LoginRequiredMixin, View):
-
     def post(self, request, project_id):
         project = get_object_or_404(Project, pk=project_id)
 
         if project.owner != request.user:
             return JsonResponse(
-                {"status": "error", "message": "Forbidden"},
+                {"status": "error", "message": "У вас нет прав на это действие"},
                 status=exceptions.PermissionDenied.status_code,
             )
 
         if project.status == PROJECT_STATUS_OPEN:
             project.status = PROJECT_STATUS_CLOSED
             project.save()
-            return JsonResponse(
-                {"status": "ok", "project_status": PROJECT_STATUS_CLOSED}
-            )
+            return JsonResponse({"status": "ok", "project_status": project.status})
 
         return JsonResponse(
-            {"status": "error", "message": "Project already closed"},
+            {"status": "error", "message": "Проект уже закрыт"},
             status=exceptions.BadRequest.status_code,
         )
 
 
-class ToggleFavoriteView(LoginRequiredMixin, View):
+def toggle_favorite(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    exists = request.user.favorites.filter(pk=project.pk).exists()
 
-    def post(self, request, project_id):
-        project = get_object_or_404(Project, pk=project_id)
+    if exists:
+        request.user.favorites.remove(project)
+    else:
+        request.user.favorites.add(project)
 
-        if request.user.favorites.filter(pk=project.pk).exists():
-            request.user.favorites.remove(project)
-            favorited = False
-        else:
-            request.user.favorites.add(project)
-            favorited = True
-
-        return JsonResponse({"status": "ok", "favorited": favorited})
+    return JsonResponse({"status": "ok", "favorited": not exists})
 
 
-class ToggleParticipateView(LoginRequiredMixin, View):
+def toggle_participate(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+    exists = project.participants.filter(pk=request.user.pk).exists()
 
-    def post(self, request, project_id):
-        project = get_object_or_404(Project, pk=project_id)
+    if exists:
+        project.participants.remove(request.user)
+    else:
+        project.participants.add(request.user)
 
-        if project.participants.filter(pk=request.user.pk).exists():
-            project.participants.remove(request.user)
-            participated = False
-        else:
-            project.participants.add(request.user)
-            participated = True
-
-        return JsonResponse({"status": "ok", "participated": participated})
+    return JsonResponse({"status": "ok", "participated": not exists})

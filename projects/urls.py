@@ -3,7 +3,7 @@ from django.urls import path
 from projects.views import (CompleteProjectView, CreateProjectView,
                             FavoriteProjectsView, ProjectDetailsView,
                             ProjectListView, ProjectUpdateView,
-                            ToggleFavoriteView, ToggleParticipateView)
+                            toggle_favorite, toggle_participate)
 
 app_name = "projects"
 
@@ -18,14 +18,11 @@ urlpatterns = [
         CompleteProjectView.as_view(),
         name="complete_project",
     ),
-    path(
-        "<int:project_id>/toggle-favorite/",
-        ToggleFavoriteView.as_view(),
-        name="toggle_favorite",
-    ),
+    path("<int:project_id>/toggle-favorite/",
+         toggle_favorite, name="toggle_favorite"),
     path(
         "<int:project_id>/toggle-participate/",
-        ToggleParticipateView.as_view(),
+        toggle_participate,
         name="toggle_participate",
     ),
 ]

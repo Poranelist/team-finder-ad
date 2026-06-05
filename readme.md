@@ -35,7 +35,7 @@ TeamFinder — это онлайн-платформа для поиска соа
 ### Клонирование репозитория
 
 ```bash
-git clone <https://github.com/Poranelist/team-finder-ad.git>
+git clone https://github.com/Poranelist/team-finder-ad.git
 cd team-finder-ad
 ```
 

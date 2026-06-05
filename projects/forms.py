@@ -1,7 +1,7 @@
 from django import forms
 
+from core.validators import validate_github_url
 from projects.models import Project
-from projects.validators import validate_github_url
 
 
 class ProjectForm(forms.ModelForm):
@@ -16,8 +16,5 @@ class ProjectForm(forms.ModelForm):
         fields = ["name", "description", "github_url", "status"]
         widgets = {
             "name": forms.TextInput(attrs={"placeholder": "Название проекта"}),
-            "description": forms.Textarea(
-                attrs={"rows": 5, "placeholder": "Описание проекта"}
-            ),
-            "status": forms.Select(),
+            "description": forms.Textarea(attrs={"placeholder": "Описание проекта"}),
         }
